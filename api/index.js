@@ -47,8 +47,25 @@ async function dlFacebook(q) {
 }
 
 async function makerBrat(q, res) {
-  const safe = q.text.slice(0, 20).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><rect width="500" height="500" fill="#90ff00"/><text x="250" y="250" font-family="Arial Narrow,Arial,sans-serif" font-size="72" font-weight="bold" fill="black" text-anchor="middle" dominant-baseline="middle" style="filter:blur(1.5px)">${safe}</text></svg>`;
+  const lower = q.text.slice(0, 60).toLowerCase().trim();
+  const words = lower.split(/\s+/);
+  // Auto-wrap ~14 chars per line
+  const lines = [];
+  let cur = '';
+  for (const w of words) {
+    const next = cur ? cur + ' ' + w : w;
+    if (next.length > 14 && cur) { lines.push(cur); cur = w; } else cur = next;
+  }
+  if (cur) lines.push(cur);
+  const maxLen = Math.max(...lines.map(l => l.length));
+  const fs = maxLen <= 5 ? 130 : maxLen <= 8 ? 105 : maxLen <= 11 ? 88 : maxLen <= 14 ? 72 : 60;
+  const lh = fs * 1.3;
+  const startY = (500 - lines.length * lh) / 2 + fs * 0.9;
+  const textEls = lines.map((line, i) => {
+    const safe = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return `<text x="250" y="${Math.round(startY + i * lh)}" font-family="Arial Narrow,Impact,Arial,sans-serif" font-size="${fs}" font-weight="900" fill="black" text-anchor="middle" filter="url(#b)">${safe}</text>`;
+  }).join('');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><defs><filter id="b" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="2.8"/></filter></defs><rect width="500" height="500" fill="#8fff00"/>${textEls}</svg>`;
   res.setHeader('Content-Type', 'image/svg+xml');
   return res.send(svg);
 }
@@ -90,10 +107,15 @@ async function toolsShorturl(q) {
 }
 
 async function toolsSsweb(q, res) {
-  const imgRes = await fetch(`https://image.thum.io/get/width/1280/crop/720/noanimate/${encodeURIComponent(q.url)}`);
-  if (!imgRes.ok) throw new Error('Gagal screenshot');
+  // microlink.io: free, works from Vercel (thum.io blocks Vercel IPs)
+  const ml = await fetchJson(`https://api.microlink.io/?url=${encodeURIComponent(q.url)}&screenshot=true&meta=false`);
+  const ssUrl = ml?.data?.screenshot?.url;
+  if (!ssUrl) throw new Error('Gagal mengambil screenshot');
+  // Proxy image dari microlink CDN
+  const imgRes = await fetch(ssUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+  if (!imgRes.ok) throw new Error('Gagal mengunduh screenshot');
   const buf = Buffer.from(await imgRes.arrayBuffer());
-  res.setHeader('Content-Type', 'image/jpeg');
+  res.setHeader('Content-Type', imgRes.headers.get('content-type') || 'image/png');
   return res.send(buf);
 }
 
