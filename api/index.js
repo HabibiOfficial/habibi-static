@@ -1,4 +1,5 @@
 import QRCode from 'qrcode';
+import sharp from 'sharp';
 
 const cors = (res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -53,85 +54,91 @@ async function makerBrat(q, res) {
   let cur = '';
   for (const w of words) {
     const next = cur ? cur + ' ' + w : w;
-    if (next.length > 14 && cur) { lines.push(cur); cur = w; } else cur = next;
+    if (next.length > 12 && cur) { lines.push(cur); cur = w; } else cur = next;
   }
   if (cur) lines.push(cur);
   const maxLen = Math.max(...lines.map(l => l.length));
-  const fs = maxLen <= 4 ? 130 : maxLen <= 7 ? 108 : maxLen <= 10 ? 90 : maxLen <= 14 ? 74 : 60;
-  const lh = fs * 1.25;
-  const startY = 55;
+  const fs = maxLen <= 3 ? 150 : maxLen <= 5 ? 130 : maxLen <= 8 ? 108 : maxLen <= 12 ? 85 : 68;
+  const lh = Math.round(fs * 1.18);
+  const startY = Math.round(fs * 0.85);
   const textEls = lines.map((line, i) => {
     const safe = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    return `<text x="28" y="${Math.round(startY + i * lh)}" font-family="Arial Narrow,Impact,Arial,sans-serif" font-size="${fs}" font-weight="900" fill="black" filter="url(#b)">${safe}</text>`;
+    return `<text x="26" y="${startY + i * lh}" font-family="DejaVu Sans,Arial,sans-serif" font-size="${fs}" font-weight="400" fill="#000000" filter="url(#bl)">${safe}</text>`;
   }).join('');
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><defs><filter id="b" x="-5%" y="-5%" width="120%" height="120%"><feGaussianBlur stdDeviation="2.2"/></filter></defs><rect width="500" height="500" fill="#ffffff"/>${textEls}</svg>`;
-  res.setHeader('Content-Type', 'image/svg+xml');
-  return res.send(svg);
+  const svg = Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500">` +
+    `<defs><filter id="bl" x="-10%" y="-10%" width="130%" height="130%"><feGaussianBlur stdDeviation="1.8"/></filter></defs>` +
+    `<rect width="500" height="500" fill="#ffffff"/>` +
+    `${textEls}</svg>`
+  );
+  const png = await sharp(svg).png().toBuffer();
+  res.setHeader('Content-Type', 'image/png');
+  return res.send(png);
 }
 
 async function makerIqc(q, res) {
-  const text = q.text.slice(0, 200);
+  const msg = q.text.slice(0, 200);
   const now = new Date();
   const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-  // Wrap text
-  const words = text.split(' ');
+  const W = 400;
+  const words = msg.split(' ');
   const lines = [];
   let cur = '';
   for (const w of words) {
     const next = cur ? cur + ' ' + w : w;
-    if (next.length > 26 && cur) { lines.push(cur); cur = w; } else cur = next;
+    if (next.length > 28 && cur) { lines.push(cur); cur = w; } else cur = next;
   }
   if (cur) lines.push(cur);
   const maxCharLen = Math.max(...lines.map(l => l.length));
-  const bubblePad = 12;
-  const lineH = 20;
-  const bubbleTextH = lines.length * lineH;
-  const bubbleH = bubblePad * 2 + bubbleTextH + 18;
-  const bubbleW = Math.min(270, Math.max(100, maxCharLen * 8.2 + bubblePad * 2 + 52));
-  const W = 370;
-  const reactionY = 16, reactionH = 48;
-  const bubbleY = reactionY + reactionH + 12;
+  const lineH = 22, bubblePad = 14;
+  const bubbleH = bubblePad * 2 + lines.length * lineH + 20;
+  const bubbleW = Math.min(300, Math.max(110, maxCharLen * 8.8 + bubblePad * 2 + 60));
+  const menuW = 280;
+  const reactionY = 18, reactionH = 52;
+  const bubbleY = reactionY + reactionH + 14;
   const menuItems = [
-    { label:'Beri Bintang', icon:'☆' },
+    { label:'Beri Bintang', icon:'★' },
     { label:'Balas', icon:'↩' },
     { label:'Teruskan', icon:'↪' },
-    { label:'Salin', icon:'⧉' },
-    { label:'Ucapkan', icon:'□' },
-    { label:'Laporkan', icon:'△' },
-    { label:'Hapus', icon:'🗑', red:true },
+    { label:'Salin', icon:'⊡' },
+    { label:'Laporkan', icon:'⚑' },
+    { label:'Hapus', icon:'✕', red:true },
   ];
-  const itemH = 50, menuW = 248;
-  const menuY = bubbleY + bubbleH + 8;
+  const itemH = 52;
+  const menuY = bubbleY + bubbleH + 10;
   const menuH = menuItems.length * itemH;
-  const totalH = menuY + menuH + 16;
+  const totalH = menuY + menuH + 18;
   const textRows = lines.map((line, i) => {
     const safe = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    return `<text x="${16 + bubblePad}" y="${bubbleY + bubblePad + 16 + i * lineH}" font-size="14" fill="#e9edef">${safe}</text>`;
+    return `<text x="${16+bubblePad}" y="${bubbleY+bubblePad+17+i*lineH}" font-size="15" fill="#e9edef">${safe}</text>`;
   }).join('');
+  const emojis = ['👍','❤️','😂','😮','😢','🙏'];
+  const emojiEls = emojis.map((e,i)=>`<text x="${26+i*38}" y="${reactionY+36}" font-size="22">${e.replace(/&/g,'&amp;')}</text>`).join('');
   const menuRows = menuItems.map((item, i) => {
     const y = menuY + i * itemH;
-    const color = item.red ? '#f15c6d' : '#e9edef';
-    const div = i < menuItems.length - 1 ? `<line x1="16" y1="${y+itemH}" x2="${16+menuW}" y2="${y+itemH}" stroke="#2a3942" stroke-width="0.5"/>` : '';
+    const color = item.red ? '#ef5350' : '#e9edef';
+    const div = i < menuItems.length - 1 ? `<line x1="16" y1="${y+itemH}" x2="${16+menuW}" y2="${y+itemH}" stroke="#374045" stroke-width="0.8"/>` : '';
     const safe = item.label.replace(/&/g,'&amp;');
-    return `<text x="${16+14}" y="${y+32}" font-size="15.5" fill="${color}">${safe}</text><text x="${16+menuW-24}" y="${y+32}" font-size="17" fill="${color}">${item.icon}</text>${div}`;
+    return `<text x="36" y="${y+33}" font-size="16" fill="${color}">${safe}</text><text x="${16+menuW-28}" y="${y+34}" font-size="18" fill="${color}">${item.icon}</text>${div}`;
   }).join('');
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${totalH}" font-family="system-ui,-apple-system,Arial,sans-serif">
-<rect width="${W}" height="${totalH}" fill="#0b141a"/>
-<rect x="14" y="${reactionY}" width="228" height="${reactionH}" rx="24" fill="#233138"/>
-<text x="27" y="${reactionY+34}" font-size="23">👍</text>
-<text x="65" y="${reactionY+34}" font-size="23">❤️</text>
-<text x="103" y="${reactionY+34}" font-size="23">😂</text>
-<text x="141" y="${reactionY+34}" font-size="23">😮</text>
-<text x="179" y="${reactionY+34}" font-size="23">😢</text>
-<text x="211" y="${reactionY+34}" font-size="23">🙏</text>
-<rect x="14" y="${bubbleY}" width="${bubbleW}" height="${bubbleH}" rx="8" fill="#202c33"/>
-${textRows}
-<text x="${16+bubbleW-bubblePad-38}" y="${bubbleY+bubbleH-7}" font-size="11" fill="#8696a0">${time}</text>
-<rect x="14" y="${menuY}" width="${menuW}" height="${menuH}" rx="10" fill="#233138"/>
-${menuRows}
-</svg>`;
-  res.setHeader('Content-Type', 'image/svg+xml');
-  return res.send(svg);
+  const tailPath = `M ${16+bubbleW} ${bubbleY+12} L ${16+bubbleW+10} ${bubbleY+6} L ${16+bubbleW+2} ${bubbleY+20} Z`;
+  const svg = Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${totalH}" font-family="DejaVu Sans,Arial,sans-serif">` +
+    `<rect width="${W}" height="${totalH}" fill="#0b141a"/>` +
+    `<rect x="14" y="${reactionY}" width="${emojis.length*38+16}" height="${reactionH}" rx="26" fill="#1f2c34" stroke="#374045" stroke-width="1"/>` +
+    emojiEls +
+    `<rect x="14" y="${bubbleY}" width="${bubbleW}" height="${bubbleH}" rx="8" fill="#005c4b"/>` +
+    `<path d="${tailPath}" fill="#005c4b"/>` +
+    textRows +
+    `<text x="${16+bubbleW-bubblePad-32}" y="${bubbleY+bubbleH-8}" font-size="11" fill="#8aad9f">${time}</text>` +
+    `<text x="${16+bubbleW-bubblePad-10}" y="${bubbleY+bubbleH-8}" font-size="12" fill="#53bdeb">✓✓</text>` +
+    `<rect x="14" y="${menuY}" width="${menuW}" height="${menuH}" rx="12" fill="#1f2c34"/>` +
+    menuRows +
+    `</svg>`
+  );
+  const jpg = await sharp(svg).jpeg({ quality: 88 }).toBuffer();
+  res.setHeader('Content-Type', 'image/jpeg');
+  return res.send(jpg);
 }
 
 async function makerQrcode(q, res) {
@@ -211,35 +218,6 @@ async function aiChat(q) {
   return { text: q.text, reply };
 }
 
-async function aiIqc(q) {
-  const messages = [
-    {
-      role: 'system',
-      content: `Kamu adalah AI penguji IQ yang lucu dan menghibur. Berdasarkan teks dari user, buat analisis IQ yang kocak.
-Format respons HARUS persis seperti ini (tanpa tambahan teks lain):
-IQ Score: [angka 1-200]
-Level: [nama level lucu]
-Analisis: [komentar lucu 1-2 kalimat dalam bahasa Indonesia]
-Rekomendasi: [saran absurd 1 kalimat]
-
-Buat skor dan analisis yang relevan dengan konten teks tapi tetap lucu dan menghibur.`,
-    },
-    { role: 'user', content: `Analisis IQ dari teks berikut: "${q.text}"` },
-  ];
-  const reply = await groqChat(messages);
-  const scoreMatch = reply.match(/IQ Score:\s*(\d+)/i);
-  const levelMatch = reply.match(/Level:\s*(.+)/i);
-  const analisaMatch = reply.match(/Analisis:\s*(.+)/i);
-  const rekomenMatch = reply.match(/Rekomendasi:\s*(.+)/i);
-  return {
-    text: q.text,
-    iq_score: scoreMatch ? parseInt(scoreMatch[1]) : null,
-    level: levelMatch?.[1]?.trim() ?? null,
-    analisis: analisaMatch?.[1]?.trim() ?? null,
-    rekomendasi: rekomenMatch?.[1]?.trim() ?? null,
-    raw: reply,
-  };
-}
 
 async function searchTiktok(q) {
   const data = await fetchJson(
@@ -306,7 +284,6 @@ const ROUTES = {
   '/api/info/kurs':         { fn: infoKurs,         req: [] },
   '/api/info/sholat':       { fn: infoSholat,       req: ['kota']  },
   '/api/ai/chat':           { fn: aiChat,           req: ['text']  },
-  '/api/ai/iqc':            { fn: aiIqc,            req: ['text']  },
 };
 
 export default async function handler(req, res) {
