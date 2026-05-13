@@ -47,9 +47,8 @@ async function dlFacebook(q) {
 }
 
 async function makerBrat(q, res) {
-  const lower = q.text.slice(0, 60).toLowerCase().trim();
+  const lower = q.text.slice(0, 80).toLowerCase().trim();
   const words = lower.split(/\s+/);
-  // Auto-wrap ~14 chars per line
   const lines = [];
   let cur = '';
   for (const w of words) {
@@ -58,14 +57,79 @@ async function makerBrat(q, res) {
   }
   if (cur) lines.push(cur);
   const maxLen = Math.max(...lines.map(l => l.length));
-  const fs = maxLen <= 5 ? 130 : maxLen <= 8 ? 105 : maxLen <= 11 ? 88 : maxLen <= 14 ? 72 : 60;
-  const lh = fs * 1.3;
-  const startY = (500 - lines.length * lh) / 2 + fs * 0.9;
+  const fs = maxLen <= 4 ? 130 : maxLen <= 7 ? 108 : maxLen <= 10 ? 90 : maxLen <= 14 ? 74 : 60;
+  const lh = fs * 1.25;
+  const startY = 55;
   const textEls = lines.map((line, i) => {
     const safe = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    return `<text x="250" y="${Math.round(startY + i * lh)}" font-family="Arial Narrow,Impact,Arial,sans-serif" font-size="${fs}" font-weight="900" fill="black" text-anchor="middle" filter="url(#b)">${safe}</text>`;
+    return `<text x="28" y="${Math.round(startY + i * lh)}" font-family="Arial Narrow,Impact,Arial,sans-serif" font-size="${fs}" font-weight="900" fill="black" filter="url(#b)">${safe}</text>`;
   }).join('');
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><defs><filter id="b" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="2.8"/></filter></defs><rect width="500" height="500" fill="#8fff00"/>${textEls}</svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><defs><filter id="b" x="-5%" y="-5%" width="120%" height="120%"><feGaussianBlur stdDeviation="2.2"/></filter></defs><rect width="500" height="500" fill="#ffffff"/>${textEls}</svg>`;
+  res.setHeader('Content-Type', 'image/svg+xml');
+  return res.send(svg);
+}
+
+async function makerIqc(q, res) {
+  const text = q.text.slice(0, 200);
+  const now = new Date();
+  const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  // Wrap text
+  const words = text.split(' ');
+  const lines = [];
+  let cur = '';
+  for (const w of words) {
+    const next = cur ? cur + ' ' + w : w;
+    if (next.length > 26 && cur) { lines.push(cur); cur = w; } else cur = next;
+  }
+  if (cur) lines.push(cur);
+  const maxCharLen = Math.max(...lines.map(l => l.length));
+  const bubblePad = 12;
+  const lineH = 20;
+  const bubbleTextH = lines.length * lineH;
+  const bubbleH = bubblePad * 2 + bubbleTextH + 18;
+  const bubbleW = Math.min(270, Math.max(100, maxCharLen * 8.2 + bubblePad * 2 + 52));
+  const W = 370;
+  const reactionY = 16, reactionH = 48;
+  const bubbleY = reactionY + reactionH + 12;
+  const menuItems = [
+    { label:'Beri Bintang', icon:'☆' },
+    { label:'Balas', icon:'↩' },
+    { label:'Teruskan', icon:'↪' },
+    { label:'Salin', icon:'⧉' },
+    { label:'Ucapkan', icon:'□' },
+    { label:'Laporkan', icon:'△' },
+    { label:'Hapus', icon:'🗑', red:true },
+  ];
+  const itemH = 50, menuW = 248;
+  const menuY = bubbleY + bubbleH + 8;
+  const menuH = menuItems.length * itemH;
+  const totalH = menuY + menuH + 16;
+  const textRows = lines.map((line, i) => {
+    const safe = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return `<text x="${16 + bubblePad}" y="${bubbleY + bubblePad + 16 + i * lineH}" font-size="14" fill="#e9edef">${safe}</text>`;
+  }).join('');
+  const menuRows = menuItems.map((item, i) => {
+    const y = menuY + i * itemH;
+    const color = item.red ? '#f15c6d' : '#e9edef';
+    const div = i < menuItems.length - 1 ? `<line x1="16" y1="${y+itemH}" x2="${16+menuW}" y2="${y+itemH}" stroke="#2a3942" stroke-width="0.5"/>` : '';
+    const safe = item.label.replace(/&/g,'&amp;');
+    return `<text x="${16+14}" y="${y+32}" font-size="15.5" fill="${color}">${safe}</text><text x="${16+menuW-24}" y="${y+32}" font-size="17" fill="${color}">${item.icon}</text>${div}`;
+  }).join('');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${totalH}" font-family="system-ui,-apple-system,Arial,sans-serif">
+<rect width="${W}" height="${totalH}" fill="#0b141a"/>
+<rect x="14" y="${reactionY}" width="228" height="${reactionH}" rx="24" fill="#233138"/>
+<text x="27" y="${reactionY+34}" font-size="23">👍</text>
+<text x="65" y="${reactionY+34}" font-size="23">❤️</text>
+<text x="103" y="${reactionY+34}" font-size="23">😂</text>
+<text x="141" y="${reactionY+34}" font-size="23">😮</text>
+<text x="179" y="${reactionY+34}" font-size="23">😢</text>
+<text x="211" y="${reactionY+34}" font-size="23">🙏</text>
+<rect x="14" y="${bubbleY}" width="${bubbleW}" height="${bubbleH}" rx="8" fill="#202c33"/>
+${textRows}
+<text x="${16+bubbleW-bubblePad-38}" y="${bubbleY+bubbleH-7}" font-size="11" fill="#8696a0">${time}</text>
+<rect x="14" y="${menuY}" width="${menuW}" height="${menuH}" rx="10" fill="#233138"/>
+${menuRows}
+</svg>`;
   res.setHeader('Content-Type', 'image/svg+xml');
   return res.send(svg);
 }
@@ -232,6 +296,7 @@ const ROUTES = {
   '/api/maker/brat':        { fn: makerBrat,        req: ['text'], raw: true },
   '/api/maker/qrcode':      { fn: makerQrcode,      req: ['text'], raw: true },
   '/api/maker/nulis':       { fn: makerNulis,       req: ['text'], raw: true },
+  '/api/maker/iqc':         { fn: makerIqc,         req: ['text'], raw: true },
   '/api/tools/translate':   { fn: toolsTranslate,   req: ['text'] },
   '/api/tools/shorturl':    { fn: toolsShorturl,    req: ['url']  },
   '/api/tools/ssweb':       { fn: toolsSsweb,       req: ['url'],  raw: true },
