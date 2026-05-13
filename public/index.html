@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HABIBI API</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#07000f;
+  --bg2:#0e0020;
+  --bg3:#160030;
+  --card:#130028;
+  --card2:#1a0035;
+  --border:#2a0055;
+  --border2:#3d0080;
+  --purple:#7c3aed;
+  --purple2:#9d5bff;
+  --purple3:#b980ff;
+  --accent:#6d28d9;
+  --text:#e2d9f3;
+  --text2:#a889d4;
+  --text3:#7a5fa8;
+  --green:#22c55e;
+  --red:#ef4444;
+  --yellow:#f59e0b;
+}
+body{
+  font-family:'Space Grotesk',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%,rgba(124,58,237,.15),transparent),
+    radial-gradient(ellipse 60% 40% at 80% 80%,rgba(109,40,217,.08),transparent);
+}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* HEADER */
+.header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(7,0,15,.85);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:0 20px;
+}
+.header-top{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 0 10px;
+}
+.logo{
+  font-size:22px;font-weight:700;letter-spacing:.5px;
+  background:linear-gradient(135deg,#fff 0%,var(--purple3) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  white-space:nowrap;
+}
+.logo span{color:var(--purple2);-webkit-text-fill-color:var(--purple2)}
+.tagline{font-size:11px;color:var(--text3);margin-left:auto;white-space:nowrap}
+.search-bar{
+  position:relative;margin-bottom:10px;
+}
+.search-bar input{
+  width:100%;padding:9px 14px 9px 36px;
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:13px;
+  outline:none;transition:.2s;
+}
+.search-bar input:focus{border-color:var(--purple);background:var(--card2)}
+.search-bar input::placeholder{color:var(--text3)}
+.search-icon{
+  position:absolute;left:11px;top:50%;transform:translateY(-50%);
+  color:var(--text3);font-size:14px;pointer-events:none;
+}
+.ticker{
+  font-size:11px;color:var(--text3);padding:4px 0 10px;
+  white-space:nowrap;overflow:hidden;
+  border-top:1px solid var(--border);
+}
+.ticker span{display:inline-block;animation:ticker 25s linear infinite}
+@keyframes ticker{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+
+/* STATS BAR */
+.stats-bar{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:var(--border);
+  border:1px solid var(--border);border-radius:10px;
+  margin:16px 20px;overflow:hidden;
+}
+.stat-btn{
+  background:var(--card);padding:10px 8px;text-align:center;
+  cursor:pointer;transition:.2s;border:none;color:var(--text2);
+  font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:500;
+}
+.stat-btn:hover{background:var(--card2);color:var(--purple2)}
+.stat-btn svg{display:block;margin:0 auto 3px;width:14px;height:14px}
+
+/* LINKS */
+.links-bar{
+  display:flex;gap:8px;padding:0 20px 16px;
+}
+.link-card{
+  flex:1;display:flex;align-items:center;gap:8px;
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:10px 12px;cursor:pointer;transition:.2s;text-decoration:none;
+}
+.link-card:hover{border-color:var(--border2);background:var(--card2)}
+.link-icon{
+  width:28px;height:28px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;
+}
+.link-icon.wa{background:rgba(34,197,94,.15);color:#22c55e}
+.link-icon.gh{background:rgba(124,58,237,.2);color:var(--purple2)}
+.link-text{font-size:11px;line-height:1.3}
+.link-text strong{display:block;font-size:12px;color:var(--text)}
+.link-text span{color:var(--text3)}
+.link-arrow{margin-left:auto;color:var(--text3);font-size:12px}
+
+/* ROUTES HEADER */
+.routes-header{
+  display:flex;align-items:center;gap:8px;
+  padding:0 20px 12px;
+}
+.dots{display:flex;gap:5px}
+.dot{width:8px;height:8px;border-radius:50%}
+.dot.red{background:#ef4444}
+.dot.yellow{background:#f59e0b}
+.dot.green{background:#22c55e}
+.routes-label{
+  font-size:11px;color:var(--text3);
+  font-family:'JetBrains Mono',monospace;
+}
+.routes-count{
+  margin-left:auto;
+  background:var(--bg3);border:1px solid var(--border);border-radius:20px;
+  padding:2px 8px;font-size:10px;color:var(--purple2);
+  font-family:'JetBrains Mono',monospace;
+}
+
+/* CATEGORIES */
+.categories{padding:0 20px 80px}
+.category{
+  margin-bottom:6px;
+  border:1px solid var(--border);border-radius:10px;overflow:hidden;
+}
+.cat-header{
+  display:flex;align-items:center;gap:10px;
+  padding:13px 16px;cursor:pointer;
+  background:var(--card);transition:.2s;
+  user-select:none;
+}
+.cat-header:hover{background:var(--card2)}
+.cat-icon{color:var(--purple2);font-size:14px;flex-shrink:0}
+.cat-name{
+  font-size:14px;font-weight:700;letter-spacing:2px;
+  color:var(--text);text-transform:uppercase;flex:1;
+}
+.cat-count{
+  background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.3);
+  border-radius:20px;padding:2px 8px;
+  font-size:10px;color:var(--purple2);
+  font-family:'JetBrains Mono',monospace;
+}
+.cat-arrow{color:var(--text3);transition:.3s;font-size:12px}
+.cat-arrow.open{transform:rotate(180deg)}
+.endpoints{display:none}
+.endpoints.open{display:block}
+
+/* ENDPOINT */
+.endpoint{
+  border-top:1px solid var(--border);
+  background:var(--bg2);
+}
+.ep-header{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 16px;cursor:pointer;transition:.2s;
+}
+.ep-header:hover{background:rgba(124,58,237,.05)}
+.method{
+  font-size:10px;font-weight:700;letter-spacing:.5px;
+  padding:2px 7px;border-radius:4px;flex-shrink:0;
+  font-family:'JetBrains Mono',monospace;
+}
+.method.GET{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)}
+.method.POST{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3)}
+.ep-path{
+  font-size:12px;font-family:'JetBrains Mono',monospace;
+  color:var(--text);flex:1;
+}
+.ep-desc{font-size:11px;color:var(--text3);margin-left:auto;text-align:right;max-width:120px}
+.ep-badges{display:flex;gap:4px;margin-left:8px}
+.badge{
+  font-size:9px;padding:2px 6px;border-radius:4px;font-weight:600;letter-spacing:.5px;
+}
+.badge.maint{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3)}
+.badge.new{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)}
+.ep-toggle{color:var(--text3);font-size:11px;flex-shrink:0;transition:.3s}
+.ep-toggle.open{transform:rotate(180deg)}
+
+/* ENDPOINT DETAIL */
+.ep-detail{
+  display:none;padding:16px;
+  border-top:1px solid var(--border);
+  background:var(--bg);
+}
+.ep-detail.open{display:block}
+.params{margin-bottom:14px}
+.param-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.param-row{
+  display:flex;align-items:center;gap:8px;margin-bottom:6px;
+}
+.param-name{
+  font-size:11px;font-family:'JetBrains Mono',monospace;
+  color:var(--purple3);min-width:80px;
+}
+.param-req{
+  font-size:9px;padding:1px 5px;border-radius:3px;
+  background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3);
+  font-weight:600;
+}
+.param-opt{
+  font-size:9px;padding:1px 5px;border-radius:3px;
+  background:rgba(124,58,237,.15);color:var(--purple2);border:1px solid rgba(124,58,237,.3);
+  font-weight:600;
+}
+.param-input{
+  flex:1;padding:7px 10px;
+  background:var(--card);border:1px solid var(--border);border-radius:6px;
+  color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;
+  outline:none;transition:.2s;
+}
+.param-input:focus{border-color:var(--purple);background:var(--card2)}
+.param-input::placeholder{color:var(--text3)}
+.execute-btn{
+  width:100%;padding:10px;
+  background:linear-gradient(135deg,var(--accent),var(--purple));
+  border:none;border-radius:8px;
+  color:#fff;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;
+  cursor:pointer;transition:.2s;letter-spacing:.5px;
+  margin-bottom:10px;
+}
+.execute-btn:hover{opacity:.9;transform:translateY(-1px)}
+.execute-btn:active{transform:translateY(0)}
+.url-preview{
+  display:flex;align-items:center;gap:8px;
+  background:var(--card);border:1px solid var(--border);border-radius:6px;
+  padding:8px 12px;margin-bottom:10px;
+}
+.url-text{
+  flex:1;font-size:11px;font-family:'JetBrains Mono',monospace;
+  color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.copy-btn{
+  background:none;border:none;cursor:pointer;
+  color:var(--text3);font-size:13px;transition:.2s;flex-shrink:0;
+}
+.copy-btn:hover{color:var(--purple2)}
+.result-box{
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  overflow:hidden;display:none;
+}
+.result-box.show{display:block}
+.result-header{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 12px;border-bottom:1px solid var(--border);
+}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.status-text{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--green)}
+.time-text{font-size:10px;color:var(--text3);margin-left:auto}
+.result-actions{display:flex;gap:6px;margin-left:8px}
+.result-action{
+  background:none;border:none;cursor:pointer;
+  color:var(--text3);font-size:12px;transition:.2s;
+  padding:2px 4px;
+}
+.result-action:hover{color:var(--purple2)}
+.result-img{max-width:100%;display:block}
+.result-json{
+  padding:12px;font-size:11px;font-family:'JetBrains Mono',monospace;
+  color:var(--text2);white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto;
+}
+.loading{
+  display:flex;align-items:center;gap:8px;
+  padding:16px;color:var(--text3);font-size:12px;
+}
+.spinner{
+  width:14px;height:14px;border:2px solid var(--border2);
+  border-top-color:var(--purple);border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* FOOTER */
+.footer{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(7,0,15,.95);backdrop-filter:blur(12px);
+  border-top:1px solid var(--border);
+  padding:12px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.footer-brand{font-size:12px;font-weight:700;color:var(--text)}
+.footer-tagline{font-size:10px;color:var(--text3)}
+.footer-links{display:flex;gap:12px}
+.footer-link{
+  color:var(--text3);text-decoration:none;font-size:18px;transition:.2s;
+}
+.footer-link:hover{color:var(--purple2)}
+
+/* TOAST */
+.toast{
+  position:fixed;top:20px;right:20px;z-index:999;
+  background:var(--card2);border:1px solid var(--border2);border-radius:8px;
+  padding:10px 16px;font-size:12px;color:var(--text);
+  transform:translateX(120%);transition:.3s;
+}
+.toast.show{transform:translateX(0)}
+
+@media(max-width:480px){
+  .ep-desc{display:none}
+  .tagline{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">HABIBI<span>-API</span></div>
+    <div class="tagline">Free. No Key. No Nonsense.</div>
+  </div>
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="SEARCH ENDPOINT..."/>
+  </div>
+  <div class="ticker">
+    <span>✦ Habibi API - Gratis tanpa API Key &nbsp;&nbsp;&nbsp; ✦ Base URL: https://api.habibimarket.dpdns.org &nbsp;&nbsp;&nbsp; ✦ Update rutin setiap minggu &nbsp;&nbsp;&nbsp; ✦ Free. No Key. No Nonsense. &nbsp;&nbsp;&nbsp;</span>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <button class="stat-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Statistik
+  </button>
+  <button class="stat-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    Traffic
+  </button>
+  <button class="stat-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Runtime
+  </button>
+  <button class="stat-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+    Error Log
+  </button>
+</div>
+
+<div class="links-bar">
+  <a href="https://whatsapp.com" target="_blank" class="link-card">
+    <div class="link-icon wa">💬</div>
+    <div class="link-text">
+      <strong>WhatsApp Channel</strong>
+      <span>Update & info</span>
+    </div>
+    <span class="link-arrow">›</span>
+  </a>
+  <a href="https://github.com/HabibiOfficial/habibi-bot" target="_blank" class="link-card">
+    <div class="link-icon gh">⚡</div>
+    <div class="link-text">
+      <strong>GitHub</strong>
+      <span>Source code</span>
+    </div>
+    <span class="link-arrow">›</span>
+  </a>
+</div>
+
+<div class="routes-header">
+  <div class="dots">
+    <div class="dot red"></div>
+    <div class="dot yellow"></div>
+    <div class="dot green"></div>
+  </div>
+  <span class="routes-label">habibiapi.js</span>
+  <span class="routes-count" id="totalRoutes">0 routes</span>
+</div>
+
+<div class="categories" id="categories"></div>
+
+<footer class="footer">
+  <div>
+    <div class="footer-brand">HABIBI-API</div>
+    <div class="footer-tagline">Free. No Key. No Nonsense.</div>
+  </div>
+  <div class="footer-links">
+    <a href="https://whatsapp.com" target="_blank" class="footer-link">💬</a>
+    <a href="https://github.com/HabibiOfficial" target="_blank" class="footer-link">🐙</a>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const BASE = 'https://api.habibimarket.dpdns.org'
+
+const API = [
+  {
+    name: 'DOWNLOAD',
+    icon: '⬇️',
+    endpoints: [
+      {
+        method:'GET', path:'/api/download/tiktok', desc:'TikTok Downloader',
+        params:[{name:'url',label:'URL TikTok',req:true,example:'https://vt.tiktok.com/xxx'}]
+      },
+      {
+        method:'GET', path:'/api/download/instagram', desc:'Instagram Downloader',
+        params:[{name:'url',label:'URL Instagram',req:true,example:'https://www.instagram.com/p/xxx'}]
+      },
+      {
+        method:'GET', path:'/api/download/youtube', desc:'YouTube Downloader',
+        params:[{name:'url',label:'URL YouTube',req:true,example:'https://youtu.be/xxx'}]
+      },
+      {
+        method:'GET', path:'/api/download/facebook', desc:'Facebook Downloader',
+        params:[{name:'url',label:'URL Facebook',req:true,example:'https://fb.watch/xxx'}]
+      },
+    ]
+  },
+  {
+    name: 'MAKER',
+    icon: '🎨',
+    endpoints: [
+      {
+        method:'GET', path:'/api/maker/brat', desc:'Brat Generator',
+        params:[{name:'text',label:'Text',req:true,example:'Apalah'}]
+      },
+      {
+        method:'GET', path:'/api/maker/nulis', desc:'Handwriting Generator',
+        params:[{name:'text',label:'Text',req:true,example:'Habibi Bot'}]
+      },
+      {
+        method:'GET', path:'/api/maker/qrcode', desc:'QR Code Generator',
+        params:[{name:'text',label:'Text / URL',req:true,example:'https://habibi-bot.com'}]
+      },
+    ]
+  },
+  {
+    name: 'TOOLS',
+    icon: '🔧',
+    endpoints: [
+      {
+        method:'GET', path:'/api/tools/shorturl', desc:'Short URL',
+        params:[{name:'url',label:'URL panjang',req:true,example:'https://example.com/panjang'}]
+      },
+      {
+        method:'GET', path:'/api/tools/translate', desc:'Translate',
+        params:[
+          {name:'text',label:'Teks',req:true,example:'Hello world'},
+          {name:'to',label:'Bahasa tujuan',req:true,example:'id'}
+        ]
+      },
+      {
+        method:'GET', path:'/api/tools/ssweb', desc:'Screenshot Web',
+        params:[{name:'url',label:'URL Website',req:true,example:'https://google.com'}]
+      },
+    ]
+  },
+  {
+    name: 'SEARCH',
+    icon: '🔍',
+    endpoints: [
+      {
+        method:'GET', path:'/api/search/tiktok', desc:'TikTok Search',
+        params:[{name:'query',label:'Kata kunci',req:true,example:'habibi bot'}]
+      },
+      {
+        method:'GET', path:'/api/search/youtube', desc:'YouTube Search',
+        params:[{name:'query',label:'Kata kunci',req:true,example:'tutorial javascript'}]
+      },
+    ]
+  },
+  {
+    name: 'INFO',
+    icon: 'ℹ️',
+    endpoints: [
+      {
+        method:'GET', path:'/api/info/cuaca', desc:'Cuaca',
+        params:[{name:'kota',label:'Nama Kota',req:true,example:'Jakarta'}]
+      },
+      {
+        method:'GET', path:'/api/info/kurs', desc:'Kurs Mata Uang',
+        params:[{name:'from',label:'Mata uang asal',req:false,example:'USD'},{name:'to',label:'Mata uang tujuan',req:false,example:'IDR'}]
+      },
+    ]
+  },
+]
+
+let totalEp = 0
+API.forEach(c => totalEp += c.endpoints.length)
+document.getElementById('totalRoutes').textContent = totalEp + ' routes'
+
+function buildCategories(data) {
+  const container = document.getElementById('categories')
+  container.innerHTML = ''
+  let anyVisible = false
+
+  data.forEach((cat, ci) => {
+    if(cat.endpoints.length === 0) return
+    anyVisible = true
+    const catEl = document.createElement('div')
+    catEl.className = 'category'
+    catEl.dataset.cat = ci
+
+    const header = document.createElement('div')
+    header.className = 'cat-header'
+    header.innerHTML = `
+      <span class="cat-icon">${cat.icon}</span>
+      <span class="cat-name">${cat.name}</span>
+      <span class="cat-count">${cat.endpoints.length} EP</span>
+      <span class="cat-arrow" id="arrow-${ci}">▾</span>
+    `
+    header.addEventListener('click', () => toggleCat(ci))
+
+    const epContainer = document.createElement('div')
+    epContainer.className = 'endpoints'
+    epContainer.id = `cat-${ci}`
+
+    cat.endpoints.forEach((ep, ei) => {
+      epContainer.appendChild(buildEndpoint(ep, ci, ei))
+    })
+
+    catEl.appendChild(header)
+    catEl.appendChild(epContainer)
+    container.appendChild(catEl)
+  })
+
+  if(!anyVisible) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);font-size:13px;">Endpoint tidak ditemukan</div>'
+  }
+}
+
+function buildEndpoint(ep, ci, ei) {
+  const id = `ep-${ci}-${ei}`
+  const div = document.createElement('div')
+  div.className = 'endpoint'
+
+  const header = document.createElement('div')
+  header.className = 'ep-header'
+  header.innerHTML = `
+    <span class="method ${ep.method}">${ep.method}</span>
+    <span class="ep-path">${ep.path}</span>
+    <span class="ep-desc">${ep.desc}</span>
+    <span class="ep-toggle" id="toggle-${id}">▾</span>
+  `
+  header.addEventListener('click', () => toggleEp(id))
+
+  const detail = document.createElement('div')
+  detail.className = 'ep-detail'
+  detail.id = id
+
+  let paramsHtml = ''
+  if(ep.params && ep.params.length > 0) {
+    paramsHtml = `<div class="params"><div class="param-label">Parameters</div>`
+    ep.params.forEach(p => {
+      paramsHtml += `
+        <div class="param-row">
+          <span class="param-name">${p.name}</span>
+          <span class="${p.req ? 'param-req' : 'param-opt'}">${p.req ? 'REQ' : 'OPT'}</span>
+          <input class="param-input" id="input-${id}-${p.name}" placeholder="${p.label}" data-example="${p.example}"/>
+        </div>
+      `
+    })
+    paramsHtml += `<button style="font-size:10px;background:none;border:none;color:var(--text3);cursor:pointer;padding:4px 0;" onclick="fillExample('${id}','${ep.params.map(p=>p.name).join(',')}','${ep.params.map(p=>encodeURIComponent(p.example)).join(',')}')">✦ EXAMPLE</button>`
+    paramsHtml += `</div>`
+  }
+
+  detail.innerHTML = `
+    ${paramsHtml}
+    <button class="execute-btn" onclick="execute('${id}','${ep.method}','${ep.path}','${ep.params ? ep.params.map(p=>p.name).join(',') : ''}')">EXECUTE</button>
+    <div class="url-preview">
+      <span class="url-text" id="url-${id}">${BASE}${ep.path}</span>
+      <button class="copy-btn" onclick="copyUrl('${id}')">📋</button>
+    </div>
+    <div class="result-box" id="result-${id}"></div>
+  `
+
+  div.appendChild(header)
+  div.appendChild(detail)
+  return div
+}
+
+function toggleCat(ci) {
+  const el = document.getElementById(`cat-${ci}`)
+  const arrow = document.getElementById(`arrow-${ci}`)
+  el.classList.toggle('open')
+  arrow.classList.toggle('open')
+}
+
+function toggleEp(id) {
+  const el = document.getElementById(id)
+  const toggle = document.getElementById(`toggle-${id}`)
+  el.classList.toggle('open')
+  toggle.classList.toggle('open')
+  updateUrl(id)
+}
+
+function fillExample(id, namesStr, examplesStr) {
+  const names = namesStr.split(',')
+  const examples = examplesStr.split(',').map(e => decodeURIComponent(e))
+  names.forEach((n, i) => {
+    const input = document.getElementById(`input-${id}-${n}`)
+    if(input) input.value = examples[i] || ''
+  })
+  updateUrl(id)
+}
+
+function updateUrl(id) {
+  const urlEl = document.getElementById(`url-${id}`)
+  if(!urlEl) return
+  const epPath = urlEl.textContent.split('?')[0].replace(BASE, '')
+  const inputs = document.querySelectorAll(`[id^="input-${id}-"]`)
+  const params = []
+  inputs.forEach(inp => {
+    const paramName = inp.id.replace(`input-${id}-`, '')
+    if(inp.value) params.push(`${paramName}=${encodeURIComponent(inp.value)}`)
+  })
+  urlEl.textContent = BASE + epPath + (params.length ? '?' + params.join('&') : '')
+}
+
+document.addEventListener('input', e => {
+  if(e.target.classList.contains('param-input')) {
+    const id = e.target.id.split('-').slice(0, 3).join('-').replace('input', 'ep')
+    updateUrl(id)
+  }
+})
+
+async function execute(id, method, path, paramsStr) {
+  const names = paramsStr ? paramsStr.split(',').filter(Boolean) : []
+  const params = {}
+  names.forEach(n => {
+    const el = document.getElementById(`input-${id}-${n}`)
+    if(el && el.value) params[n] = el.value
+  })
+
+  const qs = Object.entries(params).map(([k,v]) => `${k}=${encodeURIComponent(v)}`).join('&')
+  const url = BASE + path + (qs ? '?' + qs : '')
+
+  const resultBox = document.getElementById(`result-${id}`)
+  resultBox.className = 'result-box show'
+  resultBox.innerHTML = `<div class="loading"><div class="spinner"></div> Menjalankan request...</div>`
+
+  const t = Date.now()
+  try {
+    const res = await fetch(url)
+    const elapsed = Date.now() - t
+    const ct = res.headers.get('content-type') || ''
+
+    let bodyHtml = ''
+    if(ct.includes('image')) {
+      const blob = await res.blob()
+      const objUrl = URL.createObjectURL(blob)
+      bodyHtml = `<img class="result-img" src="${objUrl}"/>`
+    } else {
+      let text = await res.text()
+      try { text = JSON.stringify(JSON.parse(text), null, 2) } catch(e) {}
+      bodyHtml = `<div class="result-json">${escHtml(text)}</div>`
+    }
+
+    const ok = res.status >= 200 && res.status < 300
+    resultBox.innerHTML = `
+      <div class="result-header">
+        <div class="status-dot" style="background:${ok ? '#22c55e' : '#ef4444'}"></div>
+        <span class="status-text" style="color:${ok ? '#22c55e' : '#ef4444'}">● ${res.status}</span>
+        <span class="time-text">✓ ${elapsed}ms</span>
+        <div class="result-actions">
+          <button class="result-action" onclick="downloadResult('${id}')">⬇️</button>
+          <button class="result-action" onclick="closeResult('${id}')">✕</button>
+        </div>
+      </div>
+      ${bodyHtml}
+    `
+  } catch(err) {
+    resultBox.innerHTML = `
+      <div class="result-header">
+        <div class="status-dot" style="background:#ef4444"></div>
+        <span class="status-text" style="color:#ef4444">Error</span>
+      </div>
+      <div class="result-json">${escHtml(err.message)}</div>
+    `
+  }
+}
+
+function closeResult(id) {
+  document.getElementById(`result-${id}`).classList.remove('show')
+}
+
+function downloadResult(id) {
+  const img = document.querySelector(`#result-${id} img`)
+  if(img) {
+    const a = document.createElement('a')
+    a.href = img.src
+    a.download = 'habibi-result.jpg'
+    a.click()
+  }
+}
+
+function copyUrl(id) {
+  const url = document.getElementById(`url-${id}`).textContent
+  navigator.clipboard.writeText(url).then(() => showToast('URL disalin!'))
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.classList.add('show')
+  setTimeout(() => t.classList.remove('show'), 2000)
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+}
+
+document.getElementById('searchInput').addEventListener('input', function() {
+  const q = this.value.toLowerCase().trim()
+  if(!q) { buildCategories(API); return }
+  const filtered = API.map(cat => ({
+    ...cat,
+    endpoints: cat.endpoints.filter(ep =>
+      ep.path.toLowerCase().includes(q) ||
+      ep.desc.toLowerCase().includes(q) ||
+      cat.name.toLowerCase().includes(q)
+    )
+  })).filter(cat => cat.endpoints.length > 0)
+
+  buildCategories(filtered)
+  document.querySelectorAll('.endpoints').forEach(el => el.classList.add('open'))
+  document.querySelectorAll('.cat-arrow').forEach(el => el.classList.add('open'))
+})
+
+buildCategories(API)
+</script>
+</body>
+</html>

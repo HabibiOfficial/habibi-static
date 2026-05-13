@@ -1,14 +1,16 @@
 {
   "name": "habibi-api",
   "version": "1.0.0",
-  "description": "Habibi API - Image hosting for Habibi Bot",
+  "description": "Habibi API - Free public REST API for Habibi Bot",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js"
   },
   "author": "Habibi <https://github.com/HabibiOfficial>",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2"
+    "qrcode": "^1.5.3"
   }
 }
+
