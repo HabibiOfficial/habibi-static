@@ -119,6 +119,64 @@ async function toolsSsweb(q, res) {
   return res.send(buf);
 }
 
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_MODEL = 'llama-3.1-8b-instant';
+
+async function groqChat(messages) {
+  const key = process.env.GROQ_API_KEY;
+  if (!key) throw new Error('GROQ_API_KEY tidak tersedia');
+  const r = await fetch(GROQ_URL, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: GROQ_MODEL, messages, max_tokens: 1024, temperature: 0.7 }),
+  });
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    throw new Error(e?.error?.message || 'Groq API error');
+  }
+  const data = await r.json();
+  return data.choices?.[0]?.message?.content?.trim() ?? '';
+}
+
+async function aiChat(q) {
+  const messages = [
+    { role: 'system', content: q.system || 'Kamu adalah Habibi Bot, asisten AI yang ramah dan helpful. Jawab dalam bahasa Indonesia yang santai dan natural.' },
+    { role: 'user', content: q.text },
+  ];
+  const reply = await groqChat(messages);
+  return { text: q.text, reply };
+}
+
+async function aiIqc(q) {
+  const messages = [
+    {
+      role: 'system',
+      content: `Kamu adalah AI penguji IQ yang lucu dan menghibur. Berdasarkan teks dari user, buat analisis IQ yang kocak.
+Format respons HARUS persis seperti ini (tanpa tambahan teks lain):
+IQ Score: [angka 1-200]
+Level: [nama level lucu]
+Analisis: [komentar lucu 1-2 kalimat dalam bahasa Indonesia]
+Rekomendasi: [saran absurd 1 kalimat]
+
+Buat skor dan analisis yang relevan dengan konten teks tapi tetap lucu dan menghibur.`,
+    },
+    { role: 'user', content: `Analisis IQ dari teks berikut: "${q.text}"` },
+  ];
+  const reply = await groqChat(messages);
+  const scoreMatch = reply.match(/IQ Score:\s*(\d+)/i);
+  const levelMatch = reply.match(/Level:\s*(.+)/i);
+  const analisaMatch = reply.match(/Analisis:\s*(.+)/i);
+  const rekomenMatch = reply.match(/Rekomendasi:\s*(.+)/i);
+  return {
+    text: q.text,
+    iq_score: scoreMatch ? parseInt(scoreMatch[1]) : null,
+    level: levelMatch?.[1]?.trim() ?? null,
+    analisis: analisaMatch?.[1]?.trim() ?? null,
+    rekomendasi: rekomenMatch?.[1]?.trim() ?? null,
+    raw: reply,
+  };
+}
+
 async function searchTiktok(q) {
   const data = await fetchJson(
     `https://www.tikwm.com/api/feed/search?keywords=${encodeURIComponent(q.query)}&count=${q.count || 10}&cursor=0&HD=1`
@@ -182,6 +240,8 @@ const ROUTES = {
   '/api/info/cuaca':        { fn: infoCuaca,        req: ['kota']  },
   '/api/info/kurs':         { fn: infoKurs,         req: [] },
   '/api/info/sholat':       { fn: infoSholat,       req: ['kota']  },
+  '/api/ai/chat':           { fn: aiChat,           req: ['text']  },
+  '/api/ai/iqc':            { fn: aiIqc,            req: ['text']  },
 };
 
 export default async function handler(req, res) {
